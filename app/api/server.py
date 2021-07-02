@@ -6,6 +6,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '../../'))
 
 from app.database.interaction.interaction import DbInteraction
 from app.database.models.models import DSCIWeekData
+from app.database.usda_interaction.usda_interaction import USDAInteraction
+
 
 
 from app.api.utils import config_parser
@@ -32,6 +34,13 @@ class Server:
         self.app.add_url_rule('/', view_func=self.get_home)
         self.app.add_url_rule('/initiate', view_func=self.initiate)
         self.app.add_url_rule('/download', view_func=self.download_dsci_clean)
+        self.app.add_url_rule('/load_all_prod', view_func=self.load_all_prod)
+        self.app.add_url_rule('/load_srw_prod', view_func=self.load_srw_prod)
+        self.app.add_url_rule('/load_wnr_prod', view_func=self.load_wnr_prod)
+        self.app.add_url_rule('/load_sp_prod', view_func=self.load_sp_prod)
+
+
+
 
         self.app.register_error_handler(404, self.page_not_found)
 
@@ -43,6 +52,8 @@ class Server:
             db_name=db_name,
             rebuild_db=False
         )
+
+        self.usda_interaction = USDAInteraction()
 
     def run_server(self):
         self.server = threading.Thread(target=self.app.run, kwargs={'host' : self.host, 'port': self.port})
@@ -57,9 +68,11 @@ class Server:
 
     def initiate(self):
         self.get_dsci_clean()
+        return 'ok'
 
     def load_full_dsci_table(self):
         self.get_dsci_clean()
+        return 'ok'
 
     def load_last_week_dsci(self):
         objs = []
@@ -91,6 +104,34 @@ class Server:
             response = jsonify('Already exists')
             response.status_code = 200
             return response
+
+    def load_all_prod(self):
+        objects = self.usda_interaction.get_prod_all()
+        resp = self.db_interaction.bulk_add_prod_data(objects)
+        response = jsonify(resp)
+        response.status_code = 200
+        return response
+
+    def load_wnr_prod(self):
+        objects = self.usda_interaction.get_prod_wnr()
+        resp = self.db_interaction.bulk_add_prod_data(objects)
+        response = jsonify(resp)
+        response.status_code = 200
+        return response
+
+    def load_sp_prod(self):
+        objects = self.usda_interaction.get_prod_sp()
+        resp = self.db_interaction.bulk_add_prod_data(objects)
+        response = jsonify(resp)
+        response.status_code = 200
+        return response
+
+    def load_srw_prod(self):
+        objects = self.usda_interaction.get_prod_srw()
+        resp = self.db_interaction.bulk_add_prod_data(objects)
+        response = jsonify(resp)
+        response.status_code = 200
+        return response
 
     def download_dsci_clean(self):
         return self.db_interaction.download_dsci_clean()

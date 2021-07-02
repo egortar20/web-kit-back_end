@@ -26,8 +26,8 @@ class USDAParams():
         self.unit_desc =  unit
         self.domain_desc =  'TOTAL'
         self.agg_level_desc =  'STATE'
-        if stateAbbr:
-            self.state_alpha = stateAbbr
+        #if stateAbbr:
+            #self.state_alpha = stateAbbr
         self.freq_desc = 'ANNUAL'
         self.reference_period_desc = 'YEAR'
         if year:

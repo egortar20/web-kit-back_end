@@ -35,6 +35,10 @@ class DbInteraction:
 
         if rebuild_db:
             self.create_dsci_clean_table()
+            self.create_all_prod_table()
+            self.create_wnr_prod_table()
+            self.create_sp_prod_table()
+            self.create_srw_prod_table()
     
     def create_dsci_clean_table(self):
         if not self.inspector.has_table('dsci_clean'):
@@ -42,6 +46,34 @@ class DbInteraction:
         else:
             self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_clean')
             Base.metadate.tables['dsci_clean'].create(self.engine)
+    
+    def create_all_prod_table(self):
+        if not self.inspector.has_table('all_prod'):
+            Base.metadata.tables['all_prod'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS all_prod')
+            Base.metadate.tables['all_prod'].create(self.engine)
+
+    def create_wnr_prod_table(self):
+        if not self.inspector.has_table('wnr_prod'):
+            Base.metadata.tables['wnr_prod'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS wnr_prod')
+            Base.metadate.tables['wnr_prod'].create(self.engine)
+    
+    def create_sp_prod_table(self):
+        if not self.inspector.has_table('sp_prod'):
+            Base.metadata.tables['sp_prod'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS sp_prod')
+            Base.metadate.tables['sp_prod'].create(self.engine)
+
+    def create_srw_prod_table(self):
+        if not self.inspector.has_table('srw_prod'):
+            Base.metadata.tables['srw_prod'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS srw_prod')
+            Base.metadate.tables['srw_prod'].create(self.engine)
 
     def add_dsci_clean_week_data(self, releaseID, mapDate, stateAbbr, none, d0, d1, d2, d3, d4):
         dsci_clean_week_data = DSCIWeekData(
@@ -61,6 +93,11 @@ class DbInteraction:
         return self.get_dsci_clean_week_data(dsci_clean_week_data.id)
 
     def bulk_add_dsci_clean_week_data(self, bulk_data):
+        self.mysql_connection.session.bulk_save_objects(bulk_data)
+        self.mysql_connection.session.expire_all()
+        return 'Created'
+
+    def bulk_add_prod_data(self, bulk_data):
         self.mysql_connection.session.bulk_save_objects(bulk_data)
         self.mysql_connection.session.expire_all()
         return 'Created'
