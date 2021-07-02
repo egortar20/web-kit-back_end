@@ -1,0 +1,2 @@
+class DSCIWeekDataNotFoundException(Exception):
+    pass
