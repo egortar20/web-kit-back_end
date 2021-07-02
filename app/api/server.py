@@ -39,6 +39,8 @@ class Server:
         self.app.add_url_rule('/load_wnr_prod', view_func=self.load_wnr_prod)
         self.app.add_url_rule('/load_sp_prod', view_func=self.load_sp_prod)
         self.app.add_url_rule('/srw_prod_clac', view_func=self.srw_prod_calc)
+        self.app.add_url_rule('/dsci_all_calc', view_func=self.dsci_all_calc)
+
 
 
 
@@ -69,6 +71,11 @@ class Server:
 
     def initiate(self):
         self.get_dsci_clean()
+        self.load_all_prod()
+        self.load_wnr_prod()
+        self.load_sp_prod()
+        self.load_srw_prod()
+        self.srw_prod_calc()
         return 'ok'
 
     def load_full_dsci_table(self):
@@ -167,6 +174,14 @@ class Server:
 
     def srw_prod_calc(self):
         res = self.db_interaction.srw_prod_calc()
+        response = jsonify(res)
+        response.status_code = 200
+        return response
+
+    def dsci_all_calc(self):
+        res = self.db_interaction.calc_dsci_wnr_full()
+        self.db_interaction.calc_dsci_sp_full()
+        self.db_interaction.calc_dsci_srw_full()
         response = jsonify(res)
         response.status_code = 200
         return response

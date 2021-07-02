@@ -10,7 +10,7 @@ from werkzeug.wrappers import response
 import io
 import csv
 
-from app.database.models.models import Base, DSCIWeekData, allProduction, srwProduction, srwProductionPct
+from app.database.models.models import Base, DSCIAll, DSCISp, DSCISrw, DSCIWeekData, DSCIWnr, allProduction, spProduction, srwProduction, srwProductionPct, wnrProduction
 from app.database.client.client import MySQLConnection
 
 from app.database.exceptions import DSCIWeekDataNotFoundException
@@ -196,6 +196,103 @@ class DbInteraction:
                 value=int(all_val.value*(1/item.value)) if item.value > 0 else 0
             )
             objs.append(srw_prod_item)
+        self.mysql_connection.session.bulk_save_objects(objs)
+        self.mysql_connection.session.expire_all()
+        return 'ok'
+
+    def dsci_func(self, d0, d1, d2, d3, d4):
+        return d0 * 1 + d1 * 2 + d2 * 3 + d3 * 4 + d4 * 5
+
+    def dsci_row_weighted(self, date, type):
+        dsci_dated = self.mysql_connection.session.query(DSCIWeekData).filter_by(mapDate=date)
+        weights_dated = self.mysql_connection.session.query(type).filter_by(year=date[-4:]).all()
+        dsci = 0
+        count_value = 0
+        for item in weights_dated:
+            if item.stateAbbr == 'OT':
+                pass
+            else:
+                d_val = dsci_dated.filter_by(stateAbbr=item.stateAbbr).first()
+                w = item.value
+                dsci += self.dsci_func(
+                        d0=d_val.d0,
+                        d1=d_val.d1,
+                        d2=d_val.d2,
+                        d3=d_val.d3,
+                        d4=d_val.d4
+                    ) * w
+                count_value += w
+        return 0 if count_value == 0 else dsci / count_value
+
+
+    def calc_dsci_all_full(self):
+        objs = []
+        dates = self.mysql_connection.session.query(DSCIWeekData.mapDate).distinct().all()
+        i = 0
+        cc = len(dates)
+        for date in dates:
+            i += 1
+            print(i, ' of ', cc)
+            dsci_row = self.dsci_row_weighted(date.mapDate, allProduction)
+            row = DSCIAll(
+                date=date.mapDate,
+                value=dsci_row
+            )
+            objs.append(row)
+        self.mysql_connection.session.bulk_save_objects(objs)
+        self.mysql_connection.session.expire_all()
+        return 'ok'
+
+    def calc_dsci_wnr_full(self):
+        objs = []
+        dates = self.mysql_connection.session.query(DSCIWeekData.mapDate).distinct().all()
+        i = 0
+        cc = len(dates)
+        for date in dates:
+            i += 1
+            print(i, ' of ', cc)
+            dsci_row = self.dsci_row_weighted(date.mapDate, wnrProduction)
+            row = DSCIWnr(
+                date=date.mapDate,
+                value=dsci_row
+            )
+            objs.append(row)
+        self.mysql_connection.session.bulk_save_objects(objs)
+        self.mysql_connection.session.expire_all()
+        return 'ok'
+
+    def calc_dsci_sp_full(self):
+        objs = []
+        dates = self.mysql_connection.session.query(DSCIWeekData.mapDate).distinct().all()
+        i = 0
+        cc = len(dates)
+        for date in dates:
+            i += 1
+            print(i, ' of ', cc)
+            dsci_row = self.dsci_row_weighted(date.mapDate, spProduction)
+            row = DSCISp(
+                date=date.mapDate,
+                value=dsci_row
+            )
+            objs.append(row)
+        self.mysql_connection.session.bulk_save_objects(objs)
+        self.mysql_connection.session.expire_all()
+        return 'ok'
+
+    def calc_dsci_srw_full(self):
+        objs = []
+        dates = self.mysql_connection.session.query(DSCIWeekData.mapDate).distinct().all()
+        i = 0
+        cc = len(dates)
+        for date in dates:
+            i += 1
+            print(i, ' of ', cc)
+            dsci_row = self.dsci_row_weighted(date.mapDate, srwProduction)
+            row = DSCISrw(
+                date=date.mapDate,
+                value=dsci_row
+            )
+            objs.append(row)
         self.mysql_connection.session.bulk_save_objects(objs)
         self.mysql_connection.session.expire_all()
         return 'ok'
