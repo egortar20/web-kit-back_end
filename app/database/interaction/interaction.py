@@ -40,6 +40,10 @@ class DbInteraction:
             self.create_sp_prod_table()
             self.create_srw_prod_table()
             self.create_srw_prod_pct_table()
+            self.create_dsci_wnr_table()
+            self.create_dsci_all_table()
+            self.create_dsci_srw_table()
+            self.create_dsci_sp_table()
     
     def create_dsci_clean_table(self):
         if not self.inspector.has_table('dsci_clean'):
@@ -47,6 +51,34 @@ class DbInteraction:
         else:
             self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_clean')
             Base.metadate.tables['dsci_clean'].create(self.engine)
+
+    def create_dsci_all_table(self):
+        if not self.inspector.has_table('dsci_all'):
+            Base.metadata.tables['dsci_all'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_all')
+            Base.metadate.tables['dsci_all'].create(self.engine)
+
+    def create_dsci_wnr_table(self):
+        if not self.inspector.has_table('dsci_wnr'):
+            Base.metadata.tables['dsci_wnr'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_wnr')
+            Base.metadate.tables['dsci_wnr'].create(self.engine)
+
+    def create_dsci_sp_table(self):
+        if not self.inspector.has_table('dsci_sp'):
+            Base.metadata.tables['dsci_sp'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_sp')
+            Base.metadate.tables['dsci_sp'].create(self.engine)
+
+    def create_dsci_srw_table(self):
+        if not self.inspector.has_table('dsci_srw'):
+            Base.metadata.tables['dsci_srw'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS dsci_srw')
+            Base.metadate.tables['dsci_srw'].create(self.engine)
     
     def create_all_prod_table(self):
         if not self.inspector.has_table('all_prod'):
