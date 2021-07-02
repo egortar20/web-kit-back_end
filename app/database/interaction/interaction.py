@@ -10,7 +10,7 @@ from werkzeug.wrappers import response
 import io
 import csv
 
-from app.database.models.models import Base, DSCIWeekData
+from app.database.models.models import Base, DSCIWeekData, allProduction, srwProduction, srwProductionPct
 from app.database.client.client import MySQLConnection
 
 from app.database.exceptions import DSCIWeekDataNotFoundException
@@ -39,6 +39,7 @@ class DbInteraction:
             self.create_wnr_prod_table()
             self.create_sp_prod_table()
             self.create_srw_prod_table()
+            self.create_srw_prod_pct_table()
     
     def create_dsci_clean_table(self):
         if not self.inspector.has_table('dsci_clean'):
@@ -74,6 +75,13 @@ class DbInteraction:
         else:
             self.mysql_connection.execute_query('DROP TABLE IF EXISTS srw_prod')
             Base.metadate.tables['srw_prod'].create(self.engine)
+
+    def create_srw_prod_pct_table(self):
+        if not self.inspector.has_table('srw_prod_pct'):
+            Base.metadata.tables['srw_prod_pct'].create(self.engine)
+        else:
+            self.mysql_connection.execute_query('DROP TABLE IF EXISTS srw_prod_pct')
+            Base.metadate.tables['srw_prod_pct'].create(self.engine)
 
     def add_dsci_clean_week_data(self, releaseID, mapDate, stateAbbr, none, d0, d1, d2, d3, d4):
         dsci_clean_week_data = DSCIWeekData(
@@ -144,6 +152,22 @@ class DbInteraction:
                 }
         else:
             raise DSCIWeekDataNotFoundException(f'DSCI week data {id} is not found')
+
+    def srw_prod_calc(self):
+        objs = []
+        srw_pct_prod = self.mysql_connection.session.query(srwProductionPct).all()
+        for item in srw_pct_prod:
+            all_val = self.mysql_connection.session.query(allProduction).filter_by(year=item.year).filter_by(stateAbbr=item.stateAbbr).first()
+            srw_prod_item = srwProduction(
+                stateAbbr=item.stateAbbr,
+                year=item.year,
+                value=int(all_val.value*(1/item.value)) if item.value > 0 else 0
+            )
+            objs.append(srw_prod_item)
+        self.mysql_connection.session.bulk_save_objects(objs)
+        self.mysql_connection.session.expire_all()
+        return 'ok'
+
 
 
     

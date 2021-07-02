@@ -38,6 +38,7 @@ class Server:
         self.app.add_url_rule('/load_srw_prod', view_func=self.load_srw_prod)
         self.app.add_url_rule('/load_wnr_prod', view_func=self.load_wnr_prod)
         self.app.add_url_rule('/load_sp_prod', view_func=self.load_sp_prod)
+        self.app.add_url_rule('/srw_prod_clac', view_func=self.srw_prod_calc)
 
 
 
@@ -161,6 +162,12 @@ class Server:
                     objs.append(item_res)
         resp = self.db_interaction.bulk_add_dsci_clean_week_data(objs)
         response = jsonify(resp)
+        response.status_code = 200
+        return response
+
+    def srw_prod_calc(self):
+        res = self.db_interaction.srw_prod_calc()
+        response = jsonify(res)
         response.status_code = 200
         return response
 

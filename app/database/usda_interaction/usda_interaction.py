@@ -7,7 +7,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '../../../'))
 
 from app.database.usda_interaction.usda_conf import USDAParams, USDA_COUNT_URL, USDA_PROD_TYPE, USDA_UNITS, USDA_URL
 from app.api.constants import STATES
-from app.database.models.models import allProduction, wnrProduction, spProduction, srwProduction
+from app.database.models.models import allProduction, srwProductionPct, wnrProduction, spProduction, srwProduction
 
 import requests
 import json
@@ -73,7 +73,7 @@ class USDAInteraction():
         for year in range(1999, self.check_prod_last_year(USDA_PROD_TYPE['srw'], USDA_UNITS['pct']) + 1):
             params = USDAParams(year=year, type=USDA_PROD_TYPE['srw'], unit=USDA_UNITS['pct']).__dict__
             for line in json.loads(requests.get(USDA_URL, params=params).content)['data']:
-                prod_srw.append(srwProduction(
+                prod_srw.append(srwProductionPct(
                     stateAbbr=line['state_alpha'],
                     year=year,
                     value=int(line['Value'].replace(',',''))
